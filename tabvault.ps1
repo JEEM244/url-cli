@@ -81,7 +81,7 @@ switch ($Command) {
     }
 
     'capture' {
-        $windows = Get-EdgeWindowSnapshot -IncludePrivate:$IncludePrivate
+        $windows = @(Get-EdgeWindowSnapshot -IncludePrivate:$IncludePrivate)
         $backup = New-TabVaultBackup -Windows $windows
         $savedPath = Save-TabVaultBackup -Backup $backup -OutputPath $Output
 
