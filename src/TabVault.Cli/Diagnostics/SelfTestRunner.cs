@@ -39,6 +39,7 @@ public static class SelfTestRunner
 
         Check("Allows example.com", !SensitiveEntryFilter.IsSensitive("Example Domain", "https://example.com/"));
         Check("Allows Adult Education (false-positive regression)", !SensitiveEntryFilter.IsSensitive("Adult Education - Course Guide", "https://example.edu/course"));
+        Check("Allows Sex Education (false-positive regression)", !SensitiveEntryFilter.IsSensitive("Sex Education - Course Guide", "https://example.edu/health"));
         Check("Allows ordinary titles containing 'sex' as part of another word", !SensitiveEntryFilter.IsSensitive("Essex travel guide", "https://example.com/travel"));
         Check("Filters an explicit NSFW marker", SensitiveEntryFilter.IsSensitive("Example - NSFW", "https://example.com/"));
         Check("Filters an explicit category in a URL", SensitiveEntryFilter.IsSensitive("Example Domain", "https://example.com/category/hentai"));
