@@ -8,35 +8,60 @@
 </head>
 <body>
   <main class="app">
+    <!-- Nombre de la extensión y estado de la última acción. -->
     <header class="header">
       <div class="brand-mark">TV</div>
-      <div><h1>TabVault</h1><p>Session manager</p></div>
+      <div>
+        <h1>TabVault</h1>
+        <p>Session manager</p>
+      </div>
       <span id="status" class="status" role="status">Listo</span>
     </header>
+
+    <!-- Resumen de lo que se encontró en Edge. -->
     <section class="summary">
-      <div><strong id="tab-count">—</strong><span>Pestañas incluidas</span></div>
-      <div><strong id="window-count">—</strong><span>Ventanas</span></div>
-      <div><strong id="group-count">—</strong><span>Grupos</span></div>
+      <div>
+        <strong id="tab-count">—</strong>
+        <span>Pestañas incluidas</span>
+      </div>
+      <div>
+        <strong id="window-count">—</strong>
+        <span>Ventanas</span>
+      </div>
+      <div>
+        <strong id="group-count">—</strong>
+        <span>Grupos</span>
+      </div>
     </section>
+
+    <!-- InPrivate se deja desactivado hasta que el usuario lo solicite. -->
     <label class="private-option">
       <input id="include-private" type="checkbox">
       Incluir pestañas InPrivate
     </label>
     <p id="private-hint" class="hint">Diagnóstico de pestañas InPrivate: se mostrará al consultar.</p>
+
+    <!-- Acciones para guardar la sesión actual. -->
     <button id="capture" class="primary">Guardar sesión JSON</button>
     <button id="create-board" class="board-button">Crear cartelera HTML de pestañas actuales</button>
     <p class="hint">Genera una página independiente con tarjetas, buscador y grupos.</p>
+
     <div class="divider"></div>
+
+    <!-- Herramientas para usar un respaldo que ya existe. -->
     <h2>Restaurar o convertir un respaldo</h2>
     <label class="file-picker">
       <span>Seleccionar respaldo JSON</span>
       <input id="backup-file" type="file" accept=".json,application/json">
     </label>
+
     <div id="restore-preview" class="restore-preview">No hay ningún respaldo seleccionado.</div>
     <button id="create-from-backup" disabled>Crear cartelera desde este JSON</button>
     <button id="restore" disabled>Restaurar pestañas</button>
+
     <footer>TabVault 0.4.2 · Los datos permanecen en tu equipo.</footer>
   </main>
+
   <script src="popup.js"></script>
 </body>
 </html>
