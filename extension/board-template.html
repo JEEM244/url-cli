@@ -94,7 +94,8 @@
       const groups = new Map();
       const palette = { grey:"#858d9a", blue:"#6da8ed", red:"#ed7777", yellow:"#e3c36b", green:"#78bd91", pink:"#d88eb6", purple:"#ad91df", cyan:"#70c5d1", orange:"#f28b42" };
 
-      // Se agrupan las pestañas para que cada grupo tenga su propia sección.\n      data.tabs.forEach(function (tab) {
+      // Se agrupan las pestañas para que cada grupo tenga su propia sección.
+      data.tabs.forEach(function (tab) {
         if (!groups.has(tab.groupKey)) groups.set(tab.groupKey, { title:tab.groupTitle, color:tab.groupColor, tabs:[] });
         groups.get(tab.groupKey).tabs.push(tab);
       });
@@ -111,14 +112,16 @@
         groupFilter.appendChild(option);
       });
 
-      // Crea las etiquetas pequeñas: fijada, activa o InPrivate.\n      function makeBadge(label, extraClass) {
+      // Crea las etiquetas pequeñas: fijada, activa o InPrivate.
+      function makeBadge(label, extraClass) {
         const badge = document.createElement("span");
         badge.className = "badge" + (extraClass ? " " + extraClass : "");
         badge.textContent = label;
         return badge;
       }
 
-      // Vuelve a dibujar la cartelera cuando cambia la búsqueda o el grupo.\n      function render() {
+      // Vuelve a dibujar la cartelera cuando cambia la búsqueda o el grupo.
+      function render() {
         const query = search.value.trim().toLocaleLowerCase();
         const selectedGroup = groupFilter.value;
         board.replaceChildren();
@@ -193,7 +196,8 @@
         empty.style.display = visibleCount ? "none" : "block";
       }
 
-      // Los filtros no necesitan recargar el archivo.\n      search.addEventListener("input", render);
+      // Los filtros no necesitan recargar el archivo.
+      search.addEventListener("input", render);
       groupFilter.addEventListener("change", render);
       render();
     })();
