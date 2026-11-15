@@ -15,7 +15,7 @@ function Initialize-TabVaultUIAutomation {
 function Get-EdgeAddressBarValue {
     param(
         [Parameter(Mandatory)]
-        [System.Windows.Automation.AutomationElement]$Window
+        $Window
     )
 
     $condition = [System.Windows.Automation.PropertyCondition]::new(
