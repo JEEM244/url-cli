@@ -10,38 +10,32 @@
   <main class="app">
     <header class="header">
       <div class="brand-mark">TV</div>
-      <div>
-        <h1>TabVault</h1>
-        <p>Session manager</p>
-      </div>
+      <div><h1>TabVault</h1><p>Session manager</p></div>
       <span id="status" class="status" role="status">Listo</span>
     </header>
-
     <section class="summary">
       <div><strong id="tab-count">—</strong><span>Pestañas incluidas</span></div>
       <div><strong id="window-count">—</strong><span>Ventanas</span></div>
       <div><strong id="group-count">—</strong><span>Grupos</span></div>
     </section>
-
     <label class="private-option">
       <input id="include-private" type="checkbox">
       Incluir pestañas InPrivate
     </label>
     <p id="private-hint" class="hint">Marca esta casilla para incluir las pestañas InPrivate autorizadas por Edge. No necesitas abrirlas una por una.</p>
-
     <button id="capture" class="primary">Guardar sesión JSON</button>
-
+    <button id="create-board" class="board-button">Crear cartelera HTML de pestañas actuales</button>
+    <p class="hint">Genera una página independiente con tarjetas, buscador y grupos.</p>
     <div class="divider"></div>
-
-    <h2>Restaurar sesión</h2>
+    <h2>Restaurar o convertir un respaldo</h2>
     <label class="file-picker">
       <span>Seleccionar respaldo JSON</span>
       <input id="backup-file" type="file" accept=".json,application/json">
     </label>
     <div id="restore-preview" class="restore-preview">No hay ningún respaldo seleccionado.</div>
+    <button id="create-from-backup" disabled>Crear cartelera desde este JSON</button>
     <button id="restore" disabled>Restaurar pestañas</button>
-
-    <footer>TabVault 0.3.1 · Los datos permanecen en tu equipo.</footer>
+    <footer>TabVault 0.4.0 · Los datos permanecen en tu equipo.</footer>
   </main>
   <script src="popup.js"></script>
 </body>
