@@ -1,3 +1,7 @@
 # Local browser history backups can contain private URLs.
 backups/*.json
 logs/*.log
+
+# .NET build output
+**/bin/
+**/obj/
