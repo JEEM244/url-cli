@@ -1,0 +1,35 @@
+name: Edge extension checks
+
+on:
+  push:
+    branches: [main, "feature/**"]
+    paths:
+      - "extension/**"
+      - ".github/workflows/extension.yml"
+  pull_request:
+    paths:
+      - "extension/**"
+      - ".github/workflows/extension.yml"
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate JavaScript syntax
+        run: node --check extension/popup.js
+      - name: Validate extension manifest
+        shell: pwsh
+        run: |
+          $manifest = Get-Content extension/manifest.json -Raw | ConvertFrom-Json
+          if ($manifest.manifest_version -ne 3) { throw "Manifest V3 is required." }
+          if (-not $manifest.permissions.Contains("tabs")) { throw "The tabs permission is required." }
+          if (-not (Test-Path "extension/popup.html")) { throw "popup.html is missing." }
+          if (-not (Test-Path "extension/popup.css")) { throw "popup.css is missing." }
+          if (-not (Test-Path "extension/popup.js")) { throw "popup.js is missing." }
+          Write-Host "Extension files and Manifest V3 validated."
