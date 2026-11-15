@@ -1,192 +1,176 @@
-/* Colores generales de la ventana de la extensión. */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family: "Segoe UI", Arial, sans-serif;
-  background: #111318;
-  color: #edf0f5;
+  background: #f4f4f1;
+  color: #252621;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
-  width: 370px;
+  width: 350px;
   margin: 0;
-  background: #111318;
+  background: #f4f4f1;
 }
 
-.app {
-  padding: 18px;
-}
+.app { padding: 17px; }
 
-/* Encabezado */
 .header {
   display: flex;
   align-items: center;
-  gap: 11px;
-  margin-bottom: 18px;
+  gap: 10px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #d8d8d1;
 }
 
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: #f28b42;
-  color: #17191e;
-  font-weight: 800;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #30332c;
+  background: #30332c;
+  color: #f4f4f1;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: -1px;
 }
 
+.brand-copy { min-width: 0; }
+
 h1 {
   margin: 0;
-  font-size: 19px;
-  letter-spacing: -.4px;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -.35px;
 }
 
-.header p,
-footer,
-.hint {
-  margin: 3px 0 0;
-  color: #9299a6;
-  font-size: 11px;
+.header p {
+  margin: 2px 0 0;
+  color: #74766d;
+  font-size: 10px;
 }
 
 .status {
   margin-left: auto;
-  padding: 5px 8px;
-  border: 1px solid #343a45;
-  border-radius: 20px;
-  color: #b9c0cc;
+  color: #686b61;
   font-size: 10px;
 }
 
-/* Números de pestañas, ventanas y grupos. */
 .summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 15px;
+  margin: 14px 0 18px;
+  border: 1px solid #d8d8d1;
+  background: #fbfbf8;
 }
 
 .summary div {
-  padding: 12px 10px;
-  border: 1px solid #2b303a;
-  border-radius: 10px;
-  background: #191d24;
+  padding: 9px 10px;
+  border-right: 1px solid #d8d8d1;
 }
 
-.summary strong,
-.summary span {
-  display: block;
+.summary div:last-child { border-right: 0; }
+.summary strong, .summary span { display: block; }
+.summary strong { font-size: 19px; font-weight: 650; }
+.summary span { margin-top: 1px; color: #77796f; font-size: 10px; }
+
+section { margin-top: 17px; }
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
-.summary strong {
-  font-size: 20px;
+h2 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.summary span {
-  margin-top: 3px;
-  color: #9299a6;
-  font-size: 10px;
+.section-heading > span {
+  color: #888a80;
+  font-size: 9px;
+  letter-spacing: .08em;
 }
 
-/* Opción para incluir ventanas InPrivate. */
 .private-option {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 7px;
+  font-size: 11px;
 }
 
-input[type="checkbox"] {
-  accent-color: #f28b42;
-}
+input[type="checkbox"] { accent-color: #42483a; }
 
 .hint {
-  margin: 7px 0 13px 24px;
-  line-height: 1.5;
+  margin: 6px 0 10px 21px;
+  color: #77796f;
+  font-size: 10px;
+  line-height: 1.45;
 }
 
-/* Botones y selector de archivos. */
-button,
-.file-picker {
+.button, .file-picker {
+  display: block;
   width: 100%;
-  border: 1px solid #3a414d;
-  border-radius: 9px;
-  padding: 11px 12px;
-  background: #20252e;
-  color: #edf0f5;
+  min-height: 34px;
+  padding: 8px 10px;
+  border: 1px solid #c9cac1;
+  border-radius: 3px;
+  background: #fbfbf8;
+  color: #30332c;
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
+  text-align: center;
   cursor: pointer;
 }
 
-button:hover,
-.file-picker:hover {
-  border-color: #f28b42;
+.button:hover, .file-picker:hover { border-color: #656b59; }
+.button:disabled { opacity: .45; cursor: not-allowed; }
+
+.button-primary {
+  border-color: #30332c;
+  background: #30332c;
+  color: #fff;
+  font-weight: 600;
 }
 
-button:disabled {
-  opacity: .4;
-  cursor: not-allowed;
+#capture { margin-bottom: 7px; }
+
+.restore-section {
+  padding-top: 15px;
+  border-top: 1px solid #d8d8d1;
 }
 
-button.primary {
-  border-color: #f28b42;
-  background: #f28b42;
-  color: #17191e;
-  font-weight: 700;
-}
-
-button.board-button {
-  margin-top: 9px;
-  border-color: #69503b;
-  color: #f4b27d;
-  font-weight: 700;
-}
-
-#capture {
-  margin-top: 3px;
-}
-
-.divider {
-  height: 1px;
-  margin: 19px 0;
-  background: #2b303a;
-}
-
-/* Parte para cargar, convertir o restaurar un respaldo. */
-h2 {
-  margin: 0 0 10px;
-  font-size: 13px;
-}
-
-.file-picker {
-  display: block;
-  text-align: center;
-}
-
+.file-picker { position: relative; }
 .file-picker input {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
 }
 
 .restore-preview {
   min-height: 34px;
-  padding: 9px 2px;
-  color: #9299a6;
-  font-size: 11px;
-  line-height: 1.5;
+  padding: 8px 1px;
+  color: #77796f;
+  font-size: 10px;
+  line-height: 1.45;
 }
 
-#create-from-backup {
-  margin-bottom: 8px;
-  color: #f4b27d;
+.restore-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
 }
 
 footer {
-  margin-top: 18px;
-  text-align: center;
+  margin-top: 17px;
+  padding-top: 10px;
+  border-top: 1px solid #d8d8d1;
+  color: #85877d;
+  font-size: 9px;
 }
