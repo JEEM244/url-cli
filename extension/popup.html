@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TabVault</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand-mark">TV</div>
+      <div>
+        <h1>TabVault</h1>
+        <p>Session manager</p>
+      </div>
+      <span id="status" class="status" role="status">Listo</span>
+    </header>
+
+    <section class="summary">
+      <div><strong id="tab-count">—</strong><span>Pestañas</span></div>
+      <div><strong id="window-count">—</strong><span>Ventanas</span></div>
+      <div><strong id="group-count">—</strong><span>Grupos</span></div>
+    </section>
+
+    <label class="private-option">
+      <input id="include-private" type="checkbox">
+      Incluir pestañas InPrivate
+    </label>
+    <p class="hint">Para usar InPrivate, habilita primero esta extensión en la configuración de Edge. TabVault no evita las restricciones del navegador.</p>
+
+    <button id="capture" class="primary">Guardar sesión JSON</button>
+
+    <div class="divider"></div>
+
+    <h2>Restaurar sesión</h2>
+    <label class="file-picker">
+      <span>Seleccionar respaldo JSON</span>
+      <input id="backup-file" type="file" accept=".json,application/json">
+    </label>
+    <div id="restore-preview" class="restore-preview">No hay ningún respaldo seleccionado.</div>
+    <button id="restore" disabled>Restaurar pestañas</button>
+
+    <footer>TabVault 0.3.0 · Los datos permanecen en tu equipo.</footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
