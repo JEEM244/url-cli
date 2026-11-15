@@ -1,3 +1,4 @@
+// Palabras y direcciones que no se guardan en los respaldos.
 const SENSITIVE_PATTERNS = [
   /\b(porn|porno|xxx|hentai|nsfw)\b/i,
   /adult[-_/ ]?content/i,
@@ -5,8 +6,13 @@ const SENSITIVE_PATTERNS = [
 ];
 
 const $ = (id) => document.getElementById(id);
+
 let selectedBackup = null;
 let selectedBackupSnapshot = null;
+
+// --------------------------------------------------
+// Consulta y captura de pestañas
+// --------------------------------------------------
 
 function getTabUrl(tab) {
   return tab.url || tab.pendingUrl || "";
@@ -22,8 +28,8 @@ function isSafeUrl(value) {
 }
 
 function isFiltered(tab) {
-  const candidate = (tab.title || "") + " " + getTabUrl(tab);
-  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(candidate));
+  const text = (tab.title || "") + " " + getTabUrl(tab);
+  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(text));
 }
 
 function setStatus(message) {
@@ -35,22 +41,24 @@ function updatePrivateHint(summary, includePrivate) {
 }
 
 async function getSnapshot(includePrivate) {
-  // Keep the proven capture path: query tabs directly. Do not merge a second
-  // populated-window enumeration here; it changed the InPrivate results.
+  // Se consulta tabs.query directamente. Se mantiene este método porque
+  // fue el que dio los resultados correctos en las pruebas anteriores.
   const [tabs, windows] = await Promise.all([
     chrome.tabs.query({}),
     chrome.windows.getAll({ populate: false })
   ]);
 
+  // Los grupos se usan solamente para mostrar sus nombres y colores.
   let groups = [];
   if (chrome.tabGroups?.query) {
     try {
       groups = await chrome.tabGroups.query({});
     } catch (error) {
-      console.warn("TabVault could not read tab group metadata:", error);
+      console.warn("No se pudieron consultar los grupos:", error);
     }
   }
 
+  // Edge debe tener activado el permiso InPrivate para que esto funcione.
   let privateAccessAllowed = false;
   try {
     privateAccessAllowed = await chrome.extension.isAllowedIncognitoAccess();
@@ -65,8 +73,10 @@ async function getSnapshot(includePrivate) {
   let privateTabsNoUrl = 0;
   let privateTabsUnsupportedUrl = 0;
   let privateTabsFiltered = 0;
+
   const records = [];
 
+  // Relaciona el ID de cada grupo con sus datos para no buscarlos en cada vuelta.
   const groupMap = new Map(groups.map((group) => [group.id, {
     id: group.id,
     title: group.title || "",
@@ -76,15 +86,19 @@ async function getSnapshot(includePrivate) {
   for (const tab of tabs) {
     if (tab.incognito) {
       privateTabsDetected++;
+
+      // Si Edge no dio permiso, no intentamos guardar estas pestañas.
       if (!privateAccessAllowed) continue;
     }
 
     const url = getTabUrl(tab);
+
     if (!url) {
       if (tab.incognito) privateTabsNoUrl++;
       continue;
     }
 
+    // Solo guardamos páginas web normales, no páginas internas de Edge.
     if (!isSafeUrl(url)) {
       if (tab.incognito) privateTabsUnsupportedUrl++;
       continue;
@@ -92,6 +106,8 @@ async function getSnapshot(includePrivate) {
 
     if (tab.incognito) {
       privateTabsAvailable++;
+
+      // La casilla permite decidir si se incluyen las pestañas privadas.
       if (!includePrivate) continue;
     }
 
@@ -117,6 +133,7 @@ async function getSnapshot(includePrivate) {
     });
   }
 
+  // Cuenta los grupos que realmente tienen pestañas guardadas.
   const detectedGroupIds = new Set(
     records
       .map((tab) => tab.groupId)
@@ -157,9 +174,18 @@ function formatPrivateDiagnostic(summary, includePrivate) {
     summary.privateTabsAvailable + " con URL compatible",
     summary.privateTabsIncluded + " incluidas"
   ];
-  if (summary.privateTabsNoUrl) parts.push(summary.privateTabsNoUrl + " sin URL disponible");
-  if (summary.privateTabsUnsupportedUrl) parts.push(summary.privateTabsUnsupportedUrl + " con dirección no compatible");
-  if (summary.privateTabsFiltered) parts.push(summary.privateTabsFiltered + " excluidas por el filtro");
+
+  if (summary.privateTabsNoUrl) {
+    parts.push(summary.privateTabsNoUrl + " sin URL disponible");
+  }
+
+  if (summary.privateTabsUnsupportedUrl) {
+    parts.push(summary.privateTabsUnsupportedUrl + " con dirección no compatible");
+  }
+
+  if (summary.privateTabsFiltered) {
+    parts.push(summary.privateTabsFiltered + " excluidas por el filtro");
+  }
 
   if (!includePrivate) {
     return parts.join(" · ") + ". Marca la casilla para incluirlas.";
@@ -172,16 +198,22 @@ async function refreshSummary() {
   try {
     const includePrivate = $("include-private").checked;
     const snapshot = await getSnapshot(includePrivate);
+
     $("tab-count").textContent = snapshot.summary.tabsCaptured;
     $("window-count").textContent = snapshot.summary.windowsInspected;
     $("group-count").textContent = snapshot.summary.groupsDetected;
+
     updatePrivateHint(snapshot.summary, includePrivate);
   } catch (error) {
     setStatus("Sin acceso");
     $("private-hint").textContent = "No se pudieron consultar las pestañas. Revisa los permisos de TabVault.";
-    console.error("TabVault summary failed:", error);
+    console.error("Error al consultar las pestañas:", error);
   }
 }
+
+// --------------------------------------------------
+// Descargas
+// --------------------------------------------------
 
 function timestampForFilename() {
   return new Date().toISOString().replace(/[:.]/g, "-");
@@ -191,9 +223,12 @@ function downloadBlob(content, mimeType, filename) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
+
   link.href = url;
   link.download = filename;
   link.click();
+
+  // Libera la URL temporal después de iniciar la descarga.
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
@@ -205,8 +240,14 @@ function downloadJson(data) {
   );
 }
 
+// --------------------------------------------------
+// Creación de la cartelera HTML
+// --------------------------------------------------
+
 async function createBoardHtml(snapshot) {
   const sourceTabs = Array.isArray(snapshot.tabs) ? snapshot.tabs : [];
+
+  // Se prepara una versión más pequeña de cada pestaña para la plantilla.
   const tabs = sourceTabs
     .filter((tab) => tab && isSafeUrl(tab.url) && !isFiltered(tab))
     .map((tab) => {
@@ -236,6 +277,7 @@ async function createBoardHtml(snapshot) {
     hasPrivateTabs: tabs.some((tab) => tab.incognito)
   };
 
+  // Evita que caracteres de las URL puedan romper el bloque JSON del HTML.
   const safeJson = JSON.stringify(boardData)
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e")
@@ -243,15 +285,25 @@ async function createBoardHtml(snapshot) {
     .replace(/\u2028/g, "\\u2028")
     .replace(/\u2029/g, "\\u2029");
 
+  // La plantilla está en la misma extensión; no se necesita conexión externa.
   const response = await fetch(chrome.runtime.getURL("board-template.html"));
-  if (!response.ok) throw new Error("No se pudo cargar la plantilla de la cartelera.");
+
+  if (!response.ok) {
+    throw new Error("No se pudo cargar la plantilla de la cartelera.");
+  }
+
   const template = await response.text();
-  if (!template.includes("__BOARD_DATA__")) throw new Error("La plantilla de cartelera está incompleta.");
+
+  if (!template.includes("__BOARD_DATA__")) {
+    throw new Error("La plantilla de cartelera está incompleta.");
+  }
+
   return template.replace("__BOARD_DATA__", safeJson);
 }
 
 async function downloadBoard(snapshot) {
   const html = await createBoardHtml(snapshot);
+
   downloadBlob(
     html,
     "text/html;charset=utf-8",
@@ -259,93 +311,121 @@ async function downloadBoard(snapshot) {
   );
 }
 
+// --------------------------------------------------
+// Acciones del menú
+// --------------------------------------------------
+
+// Al marcar o desmarcar InPrivate, se actualizan los números.
 $("include-private").addEventListener("change", refreshSummary);
 
+// Guarda las pestañas actuales en un archivo JSON.
 $("capture").addEventListener("click", async () => {
   const button = $("capture");
   button.disabled = true;
   setStatus("Capturando…");
+
   try {
     const includePrivate = $("include-private").checked;
     const snapshot = await getSnapshot(includePrivate);
+
     downloadJson(snapshot);
     setStatus("Respaldo JSON creado");
+
     $("tab-count").textContent = snapshot.summary.tabsCaptured;
     $("window-count").textContent = snapshot.summary.windowsInspected;
     $("group-count").textContent = snapshot.summary.groupsDetected;
+
     updatePrivateHint(snapshot.summary, includePrivate);
   } catch (error) {
     setStatus("Error");
-    console.error("TabVault capture failed:", error);
+    console.error("Error al guardar el respaldo:", error);
   } finally {
     button.disabled = false;
   }
 });
 
+// Crea la cartelera directamente con las pestañas que están abiertas.
 $("create-board").addEventListener("click", async () => {
   const button = $("create-board");
   button.disabled = true;
   setStatus("Creando cartelera…");
+
   try {
     const snapshot = await getSnapshot($("include-private").checked);
     await downloadBoard(snapshot);
     setStatus("Cartelera creada");
   } catch (error) {
     setStatus("Error");
-    console.error("TabVault board generation failed:", error);
+    console.error("Error al crear la cartelera:", error);
   } finally {
     button.disabled = false;
   }
 });
 
+// Lee un respaldo seleccionado y comprueba que tenga el formato de TabVault.
 $("backup-file").addEventListener("change", async (event) => {
   selectedBackup = null;
   selectedBackupSnapshot = null;
   $("restore").disabled = true;
   $("create-from-backup").disabled = true;
+
   const file = event.target.files?.[0];
   if (!file) return;
 
   try {
     const parsed = JSON.parse(await file.text());
+
     if (parsed.application !== "TabVault" || !Array.isArray(parsed.tabs)) {
       throw new Error("Formato de respaldo no reconocido.");
     }
+
     const safeTabs = parsed.tabs.filter((tab) => tab && isSafeUrl(tab.url) && !isFiltered(tab));
+
     selectedBackup = safeTabs;
     selectedBackupSnapshot = { ...parsed, tabs: safeTabs };
-    $("restore-preview").textContent = safeTabs.length + " pestañas válidas listas para restaurar o convertir en cartelera.";
+
+    $("restore-preview").textContent =
+      safeTabs.length + " pestañas válidas listas para restaurar o convertir en cartelera.";
+
     $("restore").disabled = safeTabs.length === 0;
     $("create-from-backup").disabled = safeTabs.length === 0;
   } catch (error) {
-    $("restore-preview").textContent = "No se pudo leer el respaldo. Comprueba que sea un JSON de TabVault.";
+    $("restore-preview").textContent =
+      "No se pudo leer el respaldo. Comprueba que sea un JSON de TabVault.";
   }
 });
 
+// Convierte el respaldo elegido en una cartelera, sin abrir sus enlaces.
 $("create-from-backup").addEventListener("click", async () => {
   if (!selectedBackupSnapshot || !selectedBackupSnapshot.tabs.length) return;
+
   const button = $("create-from-backup");
   button.disabled = true;
   setStatus("Convirtiendo JSON…");
+
   try {
     await downloadBoard(selectedBackupSnapshot);
     setStatus("Cartelera creada desde JSON");
   } catch (error) {
     setStatus("Error");
-    console.error("TabVault backup board generation failed:", error);
+    console.error("Error al convertir el respaldo:", error);
   } finally {
     button.disabled = false;
   }
 });
 
+// Abre las pestañas del respaldo. Se pide confirmación para evitar abrirlas
+// todas por accidente.
 $("restore").addEventListener("click", async () => {
   if (!selectedBackup?.length) return;
+
   const confirmed = confirm("¿Abrir " + selectedBackup.length + " pestañas del respaldo?");
   if (!confirmed) return;
 
   const button = $("restore");
   button.disabled = true;
   setStatus("Restaurando…");
+
   let restored = 0;
 
   try {
@@ -353,15 +433,18 @@ $("restore").addEventListener("click", async () => {
       await chrome.tabs.create({ url: tab.url, active: false });
       restored++;
     }
+
     setStatus(restored + " abiertas");
     $("restore-preview").textContent = "Se abrieron " + restored + " pestañas.";
   } catch (error) {
     setStatus("Restauración parcial");
-    $("restore-preview").textContent = "Se abrieron " + restored + " pestañas antes del error.";
-    console.error("TabVault restore failed:", error);
+    $("restore-preview").textContent =
+      "Se abrieron " + restored + " pestañas antes del error.";
+    console.error("Error al restaurar las pestañas:", error);
   } finally {
     button.disabled = false;
   }
 });
 
+// Al abrir el menú, muestra el estado actual de las pestañas.
 refreshSummary();
