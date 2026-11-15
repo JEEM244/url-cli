@@ -1,5 +1,15 @@
-$ErrorActionPreference = 'Stop'
+[CmdletBinding()]
+param(
+    [Parameter(Position = 0)]
+    [ValidateSet('help', 'info', 'doctor', 'capture', 'list', 'test')]
+    [string]$Command = 'help',
 
+    [string]$Output,
+
+    [switch]$IncludePrivate
+)
+
+$ErrorActionPreference = 'Stop'
 $projectPath = Join-Path $PSScriptRoot 'src/TabVault.Cli/TabVault.Cli.csproj'
 
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
@@ -7,5 +17,13 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
     exit 127
 }
 
-& dotnet run --project $projectPath -- @args
+$cliArguments = @($Command)
+if ($IncludePrivate) {
+    $cliArguments += '--include-private'
+}
+if (-not [string]::IsNullOrWhiteSpace($Output)) {
+    $cliArguments += @('--output', $Output)
+}
+
+& dotnet run --project $projectPath -- @cliArguments
 exit $LASTEXITCODE
