@@ -23,13 +23,17 @@ jobs:
           node-version: 22
       - name: Validate JavaScript syntax
         run: node --check extension/popup.js
-      - name: Validate extension manifest
+      - name: Validate extension manifest and board template
         shell: pwsh
         run: |
           $manifest = Get-Content extension/manifest.json -Raw | ConvertFrom-Json
           if ($manifest.manifest_version -ne 3) { throw "Manifest V3 is required." }
           if (-not $manifest.permissions.Contains("tabs")) { throw "The tabs permission is required." }
-          if (-not (Test-Path "extension/popup.html")) { throw "popup.html is missing." }
-          if (-not (Test-Path "extension/popup.css")) { throw "popup.css is missing." }
-          if (-not (Test-Path "extension/popup.js")) { throw "popup.js is missing." }
-          Write-Host "Extension files and Manifest V3 validated."
+          foreach ($path in @("extension/popup.html", "extension/popup.css", "extension/popup.js", "extension/board-template.html")) {
+            if (-not (Test-Path $path)) { throw "Missing extension file: $path" }
+          }
+          $template = Get-Content extension/board-template.html -Raw
+          if ($template -notmatch "__BOARD_DATA__") { throw "Board data placeholder is missing." }
+          $html = Get-Content extension/popup.html -Raw
+          if ($html -notmatch 'id="create-board"' -or $html -notmatch 'id="create-from-backup"') { throw "Board export controls are missing." }
+          Write-Host "Extension files and HTML board template validated."
