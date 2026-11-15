@@ -18,7 +18,7 @@
     </header>
 
     <section class="summary">
-      <div><strong id="tab-count">—</strong><span>Pestañas</span></div>
+      <div><strong id="tab-count">—</strong><span>Pestañas incluidas</span></div>
       <div><strong id="window-count">—</strong><span>Ventanas</span></div>
       <div><strong id="group-count">—</strong><span>Grupos</span></div>
     </section>
@@ -27,7 +27,7 @@
       <input id="include-private" type="checkbox">
       Incluir pestañas InPrivate
     </label>
-    <p class="hint">Para usar InPrivate, habilita primero esta extensión en la configuración de Edge. TabVault no evita las restricciones del navegador.</p>
+    <p id="private-hint" class="hint">Marca esta casilla para incluir las pestañas InPrivate autorizadas por Edge. No necesitas abrirlas una por una.</p>
 
     <button id="capture" class="primary">Guardar sesión JSON</button>
 
@@ -41,7 +41,7 @@
     <div id="restore-preview" class="restore-preview">No hay ningún respaldo seleccionado.</div>
     <button id="restore" disabled>Restaurar pestañas</button>
 
-    <footer>TabVault 0.3.0 · Los datos permanecen en tu equipo.</footer>
+    <footer>TabVault 0.3.1 · Los datos permanecen en tu equipo.</footer>
   </main>
   <script src="popup.js"></script>
 </body>
