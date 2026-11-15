@@ -133,6 +133,26 @@ async function getSnapshot(includePrivate) {
     });
   }
 
+  // Lee la primera imagen disponible de cada página para usarla como portada.
+  // Si una página bloquea el acceso o todavía no carga imágenes, se deja vacía.
+  await Promise.all(records.map(async (tab) => {
+    try {
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          const image = Array.from(document.images).find((item) =>
+            (item.currentSrc || item.src) && !item.src.startsWith("data:")
+          );
+          const socialImage = document.querySelector('meta[property="og:image"]')?.content;
+          return image?.currentSrc || image?.src || socialImage || "";
+        }
+      });
+      tab.image = results[0]?.result || "";
+    } catch {
+      tab.image = "";
+    }
+  }));
+
   // Cuenta los grupos que realmente tienen pestañas guardadas.
   const detectedGroupIds = new Set(
     records
@@ -259,6 +279,7 @@ async function createBoardHtml(snapshot) {
       return {
         title: String(tab.title || parsedUrl.hostname),
         url: tab.url,
+        image: typeof tab.image === "string" ? tab.image : "",
         domain: parsedUrl.hostname,
         groupKey: groupId >= 0 ? "w" + windowId + "-g" + groupId : "w" + windowId + "-none",
         groupTitle: group && group.title ? String(group.title) : (groupId >= 0 ? "Grupo " + groupId : "Sin grupo"),
