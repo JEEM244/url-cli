@@ -1,0 +1,3 @@
+# Local browser history backups can contain private URLs.
+backups/*.json
+logs/*.log
