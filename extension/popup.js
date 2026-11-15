@@ -66,6 +66,13 @@ async function getSnapshot(includePrivate) {
     }
   }
 
+  let privateAccessAllowed = false;
+  try {
+    privateAccessAllowed = await chrome.extension.isAllowedIncognitoAccess();
+  } catch {
+    privateAccessAllowed = false;
+  }
+
   let filtered = 0;
   let privateTabsAvailable = 0;
   let privateTabsIncluded = 0;
@@ -82,6 +89,7 @@ async function getSnapshot(includePrivate) {
     if (!isSafeUrl(url)) continue;
 
     if (tab.incognito) {
+      if (!privateAccessAllowed) continue;
       privateTabsAvailable++;
       if (!includePrivate) continue;
     }
@@ -112,13 +120,6 @@ async function getSnapshot(includePrivate) {
       .map((tab) => tab.groupId)
       .filter((groupId) => Number.isInteger(groupId) && groupId >= 0)
   );
-
-  let privateAccessAllowed = false;
-  try {
-    privateAccessAllowed = await chrome.extension.isAllowedIncognitoAccess();
-  } catch {
-    privateAccessAllowed = false;
-  }
 
   return {
     application: "TabVault",
