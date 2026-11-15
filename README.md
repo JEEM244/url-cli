@@ -1,66 +1,86 @@
 # TabVault CLI
 
-Independent PowerShell command-line utility for local Microsoft Edge tab backups.
+A local Microsoft Edge tab-backup utility built with **C# and .NET 10**. PowerShell is retained only as a small compatibility launcher.
 
 ## Status
 
-**Prototype: v0.1.0**
+**Prototype: v0.2.0**
 
-The repository starts with a small CLI foundation and a conservative Windows UI Automation collector.
-
-### Current capture scope
-
-The first collector attempts to read the address bar exposed by each top-level Edge window. It can capture **at most one active tab per detected window**. It does not enumerate every background tab, tab group, or suspended tab.
-
-UI Automation may not expose the address bar value in every Edge version or window state. Missing values are recorded as partial, not guessed.
-
-InPrivate windows are skipped by default. The IncludePrivate switch asks the collector to inspect them too, but Edge may still withhold their information. This option does not bypass browser privacy protections.
-
-A local title/URL filter excludes entries that appear to be adult-content pages. The filter is a precaution, not a guarantee of classification.
+The main application is a compiled .NET console program. It uses Windows UI Automation to read the address bar exposed by each top-level Edge window.
 
 ## Requirements
 
 - Windows 10/11
-- PowerShell 7+
+- .NET 10 SDK
 - Microsoft Edge
 - No browser extension
 - No database
 - No administrator privileges expected
 
+.NET 10 is the Long Term Support release used by this project.
+
+## Build
+
+From the repository root:
+
+~~~powershell
+dotnet --info
+dotnet build .\src\TabVault.Cli\TabVault.Cli.csproj --configuration Release
+~~~
+
 ## Usage
 
 ~~~powershell
-pwsh ./tabvault.ps1 help
-pwsh ./tabvault.ps1 info
-pwsh ./tabvault.ps1 doctor
-pwsh ./tabvault.ps1 capture
-pwsh ./tabvault.ps1 capture -IncludePrivate
-pwsh ./tabvault.ps1 capture -Output ./backups/manual.json
-pwsh ./tabvault.ps1 list
+dotnet run --project .\src\TabVault.Cli -- help
+dotnet run --project .\src\TabVault.Cli -- info
+dotnet run --project .\src\TabVault.Cli -- doctor
+dotnet run --project .\src\TabVault.Cli -- capture
+dotnet run --project .\src\TabVault.Cli -- capture --include-private
+dotnet run --project .\src\TabVault.Cli -- capture --output .\backups\manual.json
+dotnet run --project .\src\TabVault.Cli -- list
+dotnet run --project .\src\TabVault.Cli -- test
 ~~~
 
-## Output
+The PowerShell launcher remains available for older commands:
 
-Backups are JSON files stored in backups/ by default. The generated JSON files are ignored by Git so browsing history is not committed accidentally. Each entry records its capture status:
+~~~powershell
+pwsh .\tabvault.ps1 capture
+pwsh .\tabvault.ps1 capture -IncludePrivate
+pwsh .\tabvault.ps1 doctor
+pwsh .\tabvault.ps1 test
+~~~
 
-- captured: an HTTP(S) URL was read.
-- partial: a window was detected but no usable URL was exposed.
-- filtered: the entry matched the local sensitive-content filter and was omitted.
-- private-window-skipped: an InPrivate window was skipped by default.
+## Capture scope
 
-## Roadmap
+- Captures **at most one active tab per detected Edge window**.
+- Does not enumerate background tabs, tab groups, or suspended tabs.
+- UI Automation may not expose a URL in every Edge version or window state. Those windows are recorded as partial or unavailable rather than guessing.
+- InPrivate windows are skipped by default. --include-private opts into reading their exposed UI data; it does not bypass Edge protections.
+- A conservative local filter discards entries matching explicit sensitive-content markers. Filtered titles and URLs are never written to the backup.
 
-- [x] Initial CLI structure
-- [x] Environment diagnostics
-- [x] JSON backup writer
-- [x] Conservative active-tab collector
-- [ ] Reliable background-tab enumeration without an extension
-- [ ] Tab-group metadata
-- [ ] Backup inspection and search commands
-- [ ] Restore command with dry-run support
-- [ ] Automated tests
+## JSON backups
+
+Backups are saved under backups/ by default. The JSON summary includes capture counts and separates filtered regular windows from filtered InPrivate windows. It does not include the identifying text of filtered entries.
+
+Generated browsing-history JSON files are ignored by Git.
+
+## Tests
+
+The built-in regression tests verify:
+- InPrivate title detection.
+- The sensitive-entry filter, including false-positive cases such as Adult Education.
+- HTTP(S) URL validation.
+- Capture-summary counts.
+- That filtered titles and URLs never enter serialized JSON.
+
+Run them with:
+
+~~~powershell
+dotnet run --project .\src\TabVault.Cli -- test
+~~~
+
+A Windows GitHub Actions workflow builds the project and runs the same tests on pushes and pull requests.
 
 ## Important limitation
 
-A standalone program cannot assume it can enumerate every Edge tab through supported Windows APIs. The current prototype deliberately reports its limited capture scope instead of claiming a complete session backup.
-~~~
+A standalone program cannot guarantee access to every Edge tab through Windows UI Automation. TabVault reports its actual scope instead of claiming to back up a complete browser session.
