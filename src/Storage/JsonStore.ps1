@@ -1,6 +1,7 @@
 function New-TabVaultBackup {
     param(
         [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
         [object[]]$Windows
     )
 
