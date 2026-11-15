@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text.Json;
 using TabVault.Cli.Capture;
 using TabVault.Cli.Models;
