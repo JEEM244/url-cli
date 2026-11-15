@@ -41,7 +41,7 @@ pwsh ./tabvault.ps1 list
 
 ## Output
 
-Backups are JSON files stored in backups/ by default. Each entry records its capture status:
+Backups are JSON files stored in backups/ by default. The generated JSON files are ignored by Git so browsing history is not committed accidentally. Each entry records its capture status:
 
 - captured: an HTTP(S) URL was read.
 - partial: a window was detected but no usable URL was exposed.
