@@ -1,9 +1,17 @@
 {
   "manifest_version": 3,
   "name": "TabVault",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Guarda, restaura y convierte sesiones en carteleras HTML.",
-  "permissions": ["tabs", "tabGroups"],
+  "permissions": [
+    "tabs",
+    "tabGroups",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "action": {
     "default_title": "TabVault",
     "default_popup": "popup.html"
