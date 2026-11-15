@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "TabVault",
+  "version": "0.3.0",
+  "description": "Guarda y restaura sesiones de pestañas de Microsoft Edge.",
+  "permissions": ["tabs", "tabGroups"],
+  "action": {
+    "default_title": "TabVault",
+    "default_popup": "popup.html"
+  },
+  "incognito": "spanning"
+}
