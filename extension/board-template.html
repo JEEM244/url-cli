@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+  <title>TabVault · Mi cartelera</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,"Segoe UI",Arial,sans-serif;background:#101217;color:#edf0f5;font-synthesis:none}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 0%,#292019 0,transparent 34%),#101217}
+    a{color:inherit}
+    .shell{max-width:1180px;margin:0 auto;padding:42px 28px 64px}
+    .topline{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:30px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .mark{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#f28b42;color:#17191e;font-weight:900;letter-spacing:-1px}
+    .brand-name{font-weight:800;letter-spacing:.02em}
+    .brand-sub{margin-top:3px;color:#8f96a3;font-size:12px}
+    .local-tag{border:1px solid #343a45;border-radius:999px;padding:8px 12px;color:#bfc5cf;font-size:11px}
+    .intro{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:26px}
+    h1{margin:0;font-size:clamp(30px,5vw,48px);line-height:1.03;letter-spacing:-.055em}
+    .subtitle{max-width:560px;margin:12px 0 0;color:#969daa;font-size:14px;line-height:1.6}
+    .stats{display:flex;gap:9px;flex-wrap:wrap}
+    .stat{min-width:94px;padding:12px 14px;border:1px solid #2b303a;border-radius:13px;background:#181c23}
+    .stat b{display:block;font-size:21px}.stat span{display:block;margin-top:3px;color:#9299a6;font-size:10px}
+    .privacy{margin:0 0 20px;padding:12px 14px;border:1px solid #76502f;border-radius:12px;background:#2a211a;color:#f1c99f;font-size:12px;line-height:1.5}
+    .toolbar{display:flex;gap:10px;margin:24px 0 30px}
+    .search-wrap{position:relative;flex:1}
+    .search{width:100%;height:46px;padding:0 14px 0 42px;border:1px solid #303641;border-radius:12px;outline:none;background:#191d24;color:#edf0f5;font:inherit;font-size:13px}
+    .search:focus,.group-filter:focus{border-color:#f28b42}
+    .search-icon{position:absolute;left:15px;top:13px;color:#8f96a3;font-size:17px}
+    .group-filter{max-width:230px;min-width:170px;height:46px;padding:0 12px;border:1px solid #303641;border-radius:12px;background:#191d24;color:#edf0f5;font:inherit;font-size:12px}
+    .results-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;color:#9299a6;font-size:11px}
+    .group-section{margin:26px 0 34px}
+    .group-heading{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+    .group-dot{width:9px;height:9px;border-radius:50%;background:var(--group-color,#777)}
+    .group-heading h2{margin:0;font-size:15px;letter-spacing:-.02em}
+    .group-count{color:#858c99;font-size:10px}
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .card{display:flex;flex-direction:column;min-height:158px;padding:16px;border:1px solid #2b303a;border-radius:15px;background:linear-gradient(145deg,#1c2028,#171a21);transition:border-color .16s,transform .16s}
+    .card:hover{transform:translateY(-2px);border-color:#755033}
+    .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .site-mark{display:grid;place-items:center;width:36px;height:36px;border:1px solid #383e49;border-radius:11px;background:#242a34;color:#f4b27d;font-weight:800;font-size:12px}
+    .badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+    .badge{padding:4px 7px;border-radius:999px;background:#292e38;color:#b9c0cc;font-size:9px}
+    .badge.private{background:#3a2b22;color:#f3c092}
+    .card h3{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin:14px 0 5px;font-size:14px;line-height:1.35}
+    .domain{overflow:hidden;color:#9299a6;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+    .card-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:15px}
+    .position{color:#747c89;font-size:10px}
+    .open-link{padding:7px 10px;border:1px solid #5c422f;border-radius:8px;color:#f3b17c;text-decoration:none;font-size:10px;font-weight:700}
+    .open-link:hover{background:#33261d}
+    .empty{display:none;padding:44px 20px;border:1px dashed #3a414d;border-radius:14px;color:#9ba2ae;text-align:center;font-size:13px}
+    footer{margin-top:54px;padding-top:17px;border-top:1px solid #292e37;color:#747c89;font-size:10px;line-height:1.6}
+    @media(max-width:850px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.intro{align-items:start;flex-direction:column}}
+    @media(max-width:560px){.shell{padding:25px 16px 44px}.topline{margin-bottom:25px}.toolbar{flex-direction:column}.group-filter{max-width:none;width:100%}.cards{grid-template-columns:1fr}.stats{width:100%}.stat{flex:1}.local-tag{font-size:9px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topline">
+      <div class="brand"><div class="mark">TV</div><div><div class="brand-name">TABVAULT</div><div class="brand-sub">Colección personal de enlaces</div></div></div>
+      <div class="local-tag">ARCHIVO HTML · LOCAL</div>
+    </div>
+    <section class="intro">
+      <div><h1>Mi cartelera</h1><p class="subtitle">Tus pestañas organizadas en una vista visual. Busca por título o dominio, filtra por grupo y abre cualquier enlace.</p></div>
+      <div class="stats"><div class="stat"><b id="total-count">0</b><span>ENLACES</span></div><div class="stat"><b id="group-count">0</b><span>GRUPOS</span></div></div>
+    </section>
+    <div id="privacy-note" class="privacy" hidden>Esta cartelera contiene enlaces guardados desde una ventana InPrivate. El archivo HTML conserva esos enlaces: guárdalo en un lugar privado y no lo compartas sin revisarlo.</div>
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-icon">⌕</span><input id="search" class="search" type="search" placeholder="Buscar por título o dominio..." autocomplete="off"></div>
+      <select id="group-filter" class="group-filter" aria-label="Filtrar por grupo"><option value="">Todos los grupos</option></select>
+    </div>
+    <div class="results-line"><span id="results-count">Enlaces de tu respaldo</span><span id="generated-date"></span></div>
+    <div id="board"></div>
+    <div id="empty" class="empty">No hay enlaces que coincidan con la búsqueda.</div>
+    <footer>Generado por TabVault. Esta página funciona sin dependencias externas y no envía tus enlaces a ningún servidor.</footer>
+  </main>
+  <script id="board-data" type="application/json">__BOARD_DATA__</script>
+  <script>
+    (function () {
+      "use strict";
+      const data = JSON.parse(document.getElementById("board-data").textContent);
+      const board = document.getElementById("board");
+      const search = document.getElementById("search");
+      const groupFilter = document.getElementById("group-filter");
+      const empty = document.getElementById("empty");
+      const groups = new Map();
+      const palette = { grey:"#858d9a", blue:"#6da8ed", red:"#ed7777", yellow:"#e3c36b", green:"#78bd91", pink:"#d88eb6", purple:"#ad91df", cyan:"#70c5d1", orange:"#f28b42" };
+
+      data.tabs.forEach(function (tab) {
+        if (!groups.has(tab.groupKey)) groups.set(tab.groupKey, { title:tab.groupTitle, color:tab.groupColor, tabs:[] });
+        groups.get(tab.groupKey).tabs.push(tab);
+      });
+
+      document.getElementById("total-count").textContent = data.tabs.length;
+      document.getElementById("group-count").textContent = groups.size;
+      document.getElementById("privacy-note").hidden = !data.hasPrivateTabs;
+      document.getElementById("generated-date").textContent = "Creado " + new Date(data.generatedAt).toLocaleString();
+
+      groups.forEach(function (group, key) {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = group.title;
+        groupFilter.appendChild(option);
+      });
+
+      function makeBadge(label, extraClass) {
+        const badge = document.createElement("span");
+        badge.className = "badge" + (extraClass ? " " + extraClass : "");
+        badge.textContent = label;
+        return badge;
+      }
+
+      function render() {
+        const query = search.value.trim().toLocaleLowerCase();
+        const selectedGroup = groupFilter.value;
+        board.replaceChildren();
+        let visibleCount = 0;
+
+        groups.forEach(function (group, key) {
+          if (selectedGroup && selectedGroup !== key) return;
+          const matching = group.tabs.filter(function (tab) {
+            return (tab.title + " " + tab.domain + " " + tab.url).toLocaleLowerCase().includes(query);
+          });
+          if (!matching.length) return;
+
+          const section = document.createElement("section");
+          section.className = "group-section";
+          const heading = document.createElement("div");
+          heading.className = "group-heading";
+          heading.style.setProperty("--group-color", palette[group.color] || palette.grey);
+          const dot = document.createElement("span");
+          dot.className = "group-dot";
+          const title = document.createElement("h2");
+          title.textContent = group.title;
+          const count = document.createElement("span");
+          count.className = "group-count";
+          count.textContent = matching.length + (matching.length === 1 ? " enlace" : " enlaces");
+          heading.append(dot, title, count);
+
+          const cards = document.createElement("div");
+          cards.className = "cards";
+          matching.forEach(function (tab) {
+            const card = document.createElement("article");
+            card.className = "card";
+            const top = document.createElement("div");
+            top.className = "card-top";
+            const mark = document.createElement("div");
+            mark.className = "site-mark";
+            const words = tab.domain.replace(/^www\./i, "").split(/[.-]/).filter(Boolean);
+            mark.textContent = words.slice(0, 2).map(function (word) { return word.charAt(0); }).join("").toUpperCase() || "WEB";
+            const badges = document.createElement("div");
+            badges.className = "badges";
+            if (tab.pinned) badges.appendChild(makeBadge("Fijada"));
+            if (tab.active) badges.appendChild(makeBadge("Activa"));
+            if (tab.incognito) badges.appendChild(makeBadge("InPrivate", "private"));
+            top.append(mark, badges);
+
+            const titleNode = document.createElement("h3");
+            titleNode.textContent = tab.title || tab.domain;
+            const domain = document.createElement("div");
+            domain.className = "domain";
+            domain.textContent = tab.domain;
+            const bottom = document.createElement("div");
+            bottom.className = "card-bottom";
+            const position = document.createElement("span");
+            position.className = "position";
+            position.textContent = "Pestaña " + (tab.index + 1);
+            const link = document.createElement("a");
+            link.className = "open-link";
+            link.href = tab.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "Abrir enlace ↗";
+            bottom.append(position, link);
+            card.append(top, titleNode, domain, bottom);
+            cards.appendChild(card);
+          });
+
+          section.append(heading, cards);
+          board.appendChild(section);
+          visibleCount += matching.length;
+        });
+
+        document.getElementById("results-count").textContent = visibleCount + " de " + data.tabs.length + " enlaces";
+        empty.style.display = visibleCount ? "none" : "block";
+      }
+
+      search.addEventListener("input", render);
+      groupFilter.addEventListener("change", render);
+      render();
+    })();
+  </script>
+</body>
+</html>
