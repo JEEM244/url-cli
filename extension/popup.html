@@ -8,60 +8,53 @@
 </head>
 <body>
   <main class="app">
-    <!-- Nombre de la extensión y estado de la última acción. -->
     <header class="header">
       <div class="brand-mark">TV</div>
-      <div>
+      <div class="brand-copy">
         <h1>TabVault</h1>
-        <p>Session manager</p>
+        <p>Guardar y recuperar pestañas</p>
       </div>
       <span id="status" class="status" role="status">Listo</span>
     </header>
 
-    <!-- Resumen de lo que se encontró en Edge. -->
-    <section class="summary">
-      <div>
-        <strong id="tab-count">—</strong>
-        <span>Pestañas incluidas</span>
+    <section class="summary" aria-label="Estado del navegador">
+      <div><strong id="tab-count">—</strong><span>Pestañas</span></div>
+      <div><strong id="window-count">—</strong><span>Ventanas</span></div>
+      <div><strong id="group-count">—</strong><span>Grupos</span></div>
+    </section>
+
+    <section class="capture-section">
+      <div class="section-heading">
+        <h2>Sesión actual</h2>
+        <span>EDGE</span>
       </div>
-      <div>
-        <strong id="window-count">—</strong>
-        <span>Ventanas</span>
+      <label class="private-option">
+        <input id="include-private" type="checkbox">
+        Incluir pestañas InPrivate
+      </label>
+      <p id="private-hint" class="hint">El estado de InPrivate aparecerá aquí.</p>
+      <button id="capture" class="button button-primary">Guardar respaldo JSON</button>
+      <button id="create-board" class="button">Crear lista HTML</button>
+    </section>
+
+    <section class="restore-section">
+      <div class="section-heading">
+        <h2>Usar un respaldo</h2>
+        <span>JSON</span>
       </div>
-      <div>
-        <strong id="group-count">—</strong>
-        <span>Grupos</span>
+      <label class="file-picker">
+        <span>Elegir archivo JSON…</span>
+        <input id="backup-file" type="file" accept=".json,application/json">
+      </label>
+      <div id="restore-preview" class="restore-preview">No has seleccionado ningún archivo.</div>
+      <div class="restore-actions">
+        <button id="create-from-backup" class="button" disabled>Crear lista</button>
+        <button id="restore" class="button" disabled>Restaurar pestañas</button>
       </div>
     </section>
 
-    <!-- InPrivate se deja desactivado hasta que el usuario lo solicite. -->
-    <label class="private-option">
-      <input id="include-private" type="checkbox">
-      Incluir pestañas InPrivate
-    </label>
-    <p id="private-hint" class="hint">Diagnóstico de pestañas InPrivate: se mostrará al consultar.</p>
-
-    <!-- Acciones para guardar la sesión actual. -->
-    <button id="capture" class="primary">Guardar sesión JSON</button>
-    <button id="create-board" class="board-button">Crear cartelera HTML de pestañas actuales</button>
-    <p class="hint">Genera una página independiente con tarjetas, buscador y grupos.</p>
-
-    <div class="divider"></div>
-
-    <!-- Herramientas para usar un respaldo que ya existe. -->
-    <h2>Restaurar o convertir un respaldo</h2>
-    <label class="file-picker">
-      <span>Seleccionar respaldo JSON</span>
-      <input id="backup-file" type="file" accept=".json,application/json">
-    </label>
-
-    <div id="restore-preview" class="restore-preview">No hay ningún respaldo seleccionado.</div>
-    <button id="create-from-backup" disabled>Crear cartelera desde este JSON</button>
-    <button id="restore" disabled>Restaurar pestañas</button>
-
-    <footer>TabVault 0.5.0 · Los datos permanecen en tu equipo.</footer>
+    <footer>Los respaldos se guardan en tu equipo.</footer>
   </main>
-
   <script src="popup.js"></script>
 </body>
 </html>
