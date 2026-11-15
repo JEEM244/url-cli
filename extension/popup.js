@@ -1,11 +1,15 @@
 const SENSITIVE_PATTERNS = [
-  /\b(porn|porno|xxx|hentai|nsfw)\b/i,
+  /\\b(porn|porno|xxx|hentai|nsfw)\\b/i,
   /adult[-_/ ]?content/i,
   /explicit[-_/ ]?content/i
 ];
 
 const $ = (id) => document.getElementById(id);
 let selectedBackup = null;
+
+function getTabUrl(tab) {
+  return tab.url || tab.pendingUrl || "";
+}
 
 function isSafeUrl(value) {
   try {
@@ -17,7 +21,7 @@ function isSafeUrl(value) {
 }
 
 function isFiltered(tab) {
-  const candidate = `${tab.title || ""} ${tab.url || ""}`;
+  const candidate = `${tab.title || ""} ${getTabUrl(tab)}`;
   return SENSITIVE_PATTERNS.some((pattern) => pattern.test(candidate));
 }
 
@@ -25,12 +29,47 @@ function setStatus(message) {
   $("status").textContent = message;
 }
 
+function updatePrivateHint(summary, includePrivate) {
+  const hint = $("private-hint");
+
+  if (!summary.privateAccessAllowed) {
+    hint.textContent = "Edge todavía no permite el acceso InPrivate. Activa «Permitir en InPrivate» en los detalles de TabVault.";
+    return;
+  }
+
+  if (summary.privateTabsAvailable === 0) {
+    hint.textContent = "No se detectaron pestañas InPrivate accesibles en este momento.";
+    return;
+  }
+
+  if (includePrivate) {
+    hint.textContent = `${summary.privateTabsIncluded} pestañas InPrivate se incluirán en el respaldo. También se capturan las pestañas de grupos plegados.`;
+    return;
+  }
+
+  hint.textContent = `${summary.privateTabsAvailable} pestañas InPrivate detectadas. Marca esta casilla para incluirlas; no necesitas abrirlas una por una.`;
+}
+
 async function getSnapshot(includePrivate) {
-  const [tabs, windows, groups] = await Promise.all([
+  const [tabs, windows] = await Promise.all([
     chrome.tabs.query({}),
-    chrome.windows.getAll({ populate: false }),
-    chrome.tabGroups ? chrome.tabGroups.query({}) : Promise.resolve([])
+    chrome.windows.getAll({ populate: false })
   ]);
+
+  // A group metadata error must not prevent the tabs themselves from being saved.
+  let groups = [];
+  if (chrome.tabGroups?.query) {
+    try {
+      groups = await chrome.tabGroups.query({});
+    } catch (error) {
+      console.warn("TabVault could not read tab group metadata:", error);
+    }
+  }
+
+  let filtered = 0;
+  let privateTabsAvailable = 0;
+  let privateTabsIncluded = 0;
+  const records = [];
 
   const groupMap = new Map(groups.map((group) => [group.id, {
     id: group.id,
@@ -38,29 +77,47 @@ async function getSnapshot(includePrivate) {
     color: group.color
   }]));
 
-  let filtered = 0;
-  const records = [];
-
   for (const tab of tabs) {
-    if (tab.incognito && !includePrivate) continue;
-    if (!isSafeUrl(tab.url)) continue;
-    if (isFiltered(tab)) {
+    const url = getTabUrl(tab);
+    if (!isSafeUrl(url)) continue;
+
+    if (tab.incognito) {
+      privateTabsAvailable++;
+      if (!includePrivate) continue;
+    }
+
+    if (isFiltered({ ...tab, url })) {
       filtered++;
       continue;
     }
+
+    if (tab.incognito) privateTabsIncluded++;
 
     records.push({
       id: tab.id,
       windowId: tab.windowId,
       groupId: tab.groupId,
       group: groupMap.get(tab.groupId) || null,
-      title: tab.title || tab.url,
-      url: tab.url,
+      title: tab.title || url,
+      url,
       active: Boolean(tab.active),
       pinned: Boolean(tab.pinned),
       incognito: Boolean(tab.incognito),
       index: tab.index
     });
+  }
+
+  const detectedGroupIds = new Set(
+    records
+      .map((tab) => tab.groupId)
+      .filter((groupId) => Number.isInteger(groupId) && groupId >= 0)
+  );
+
+  let privateAccessAllowed = false;
+  try {
+    privateAccessAllowed = await chrome.extension.isAllowedIncognitoAccess();
+  } catch {
+    privateAccessAllowed = false;
   }
 
   return {
@@ -72,8 +129,11 @@ async function getSnapshot(includePrivate) {
     summary: {
       windowsInspected: windows.length,
       tabsCaptured: records.length,
-      groupsDetected: groups.length,
-      filteredEntries: filtered
+      groupsDetected: detectedGroupIds.size,
+      filteredEntries: filtered,
+      privateAccessAllowed,
+      privateTabsAvailable,
+      privateTabsIncluded
     },
     tabs: records
   };
@@ -81,12 +141,16 @@ async function getSnapshot(includePrivate) {
 
 async function refreshSummary() {
   try {
-    const snapshot = await getSnapshot(false);
+    const includePrivate = $("include-private").checked;
+    const snapshot = await getSnapshot(includePrivate);
     $("tab-count").textContent = snapshot.summary.tabsCaptured;
     $("window-count").textContent = snapshot.summary.windowsInspected;
     $("group-count").textContent = snapshot.summary.groupsDetected;
-  } catch {
+    updatePrivateHint(snapshot.summary, includePrivate);
+  } catch (error) {
     setStatus("Sin acceso");
+    $("private-hint").textContent = "No se pudieron consultar las pestañas. Revisa los permisos de TabVault.";
+    console.error("TabVault summary failed:", error);
   }
 }
 
@@ -101,17 +165,21 @@ function downloadJson(data) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+$("include-private").addEventListener("change", refreshSummary);
+
 $("capture").addEventListener("click", async () => {
   const button = $("capture");
   button.disabled = true;
   setStatus("Capturando…");
   try {
-    const snapshot = await getSnapshot($("include-private").checked);
+    const includePrivate = $("include-private").checked;
+    const snapshot = await getSnapshot(includePrivate);
     downloadJson(snapshot);
     setStatus("Respaldo creado");
     $("tab-count").textContent = snapshot.summary.tabsCaptured;
     $("window-count").textContent = snapshot.summary.windowsInspected;
     $("group-count").textContent = snapshot.summary.groupsDetected;
+    updatePrivateHint(snapshot.summary, includePrivate);
   } catch (error) {
     setStatus("Error");
     console.error("TabVault capture failed:", error);
