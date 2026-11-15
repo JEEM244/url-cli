@@ -5,7 +5,7 @@
   color: #edf0f5;
 }
 * { box-sizing: border-box; }
-body { width: 360px; margin: 0; background: #111318; }
+body { width: 370px; margin: 0; background: #111318; }
 .app { padding: 18px; }
 .header { display: flex; align-items: center; gap: 11px; margin-bottom: 18px; }
 .brand-mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: #f28b42; color: #17191e; font-weight: 800; letter-spacing: -1px; }
@@ -24,9 +24,12 @@ button, .file-picker { width: 100%; border: 1px solid #3a414d; border-radius: 9p
 button:hover, .file-picker:hover { border-color: #f28b42; }
 button:disabled { opacity: .4; cursor: not-allowed; }
 button.primary { border-color: #f28b42; background: #f28b42; color: #17191e; font-weight: 700; }
+button.board-button { margin-top: 9px; border-color: #69503b; color: #f4b27d; font-weight: 700; }
+#capture { margin-top: 3px; }
 .divider { height: 1px; margin: 19px 0; background: #2b303a; }
 h2 { margin: 0 0 10px; font-size: 13px; }
 .file-picker { display: block; text-align: center; }
 .file-picker input { display: none; }
 .restore-preview { min-height: 34px; padding: 9px 2px; color: #9299a6; font-size: 11px; line-height: 1.5; }
+#create-from-backup { margin-bottom: 8px; color: #f4b27d; }
 footer { margin-top: 18px; text-align: center; }
