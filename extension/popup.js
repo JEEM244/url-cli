@@ -35,28 +35,12 @@ function updatePrivateHint(summary, includePrivate) {
 }
 
 async function getSnapshot(includePrivate) {
-  const [queriedTabs, windows] = await Promise.all([
+  // Keep the proven capture path: query tabs directly. Do not merge a second
+  // populated-window enumeration here; it changed the InPrivate results.
+  const [tabs, windows] = await Promise.all([
     chrome.tabs.query({}),
-    chrome.windows.getAll({ populate: true })
+    chrome.windows.getAll({ populate: false })
   ]);
-
-  // Cross-check both supported APIs and merge by tab ID. This also gives us
-  // a diagnostic when Edge exposes different results in InPrivate mode.
-  const tabsById = new Map();
-  for (const tab of queriedTabs) {
-    if (Number.isInteger(tab.id)) tabsById.set(tab.id, tab);
-  }
-
-  let tabsFromWindows = 0;
-  for (const win of windows) {
-    for (const tab of win.tabs || []) {
-      if (!Number.isInteger(tab.id)) continue;
-      tabsFromWindows++;
-      if (!tabsById.has(tab.id)) tabsById.set(tab.id, tab);
-    }
-  }
-
-  const tabs = [...tabsById.values()];
 
   let groups = [];
   if (chrome.tabGroups?.query) {
@@ -134,7 +118,9 @@ async function getSnapshot(includePrivate) {
   }
 
   const detectedGroupIds = new Set(
-    records.map((tab) => tab.groupId).filter((id) => Number.isInteger(id) && id >= 0)
+    records
+      .map((tab) => tab.groupId)
+      .filter((groupId) => Number.isInteger(groupId) && groupId >= 0)
   );
 
   return {
@@ -155,8 +141,7 @@ async function getSnapshot(includePrivate) {
       privateTabsNoUrl,
       privateTabsUnsupportedUrl,
       privateTabsFiltered,
-      privateTabsFromQuery: queriedTabs.filter((tab) => tab.incognito).length,
-      privateTabsFromWindows: windows.flatMap((win) => win.tabs || []).filter((tab) => tab.incognito).length
+      privateTabsFromQuery: privateTabsDetected
     },
     tabs: records
   };
@@ -168,25 +153,21 @@ function formatPrivateDiagnostic(summary, includePrivate) {
   }
 
   const parts = [
-    summary.privateTabsDetected + " detectadas",
+    summary.privateTabsDetected + " detectadas por tabs.query()",
+    summary.privateTabsAvailable + " con URL compatible",
     summary.privateTabsIncluded + " incluidas"
   ];
   if (summary.privateTabsNoUrl) parts.push(summary.privateTabsNoUrl + " sin URL disponible");
   if (summary.privateTabsUnsupportedUrl) parts.push(summary.privateTabsUnsupportedUrl + " con dirección no compatible");
   if (summary.privateTabsFiltered) parts.push(summary.privateTabsFiltered + " excluidas por el filtro");
-  parts.push("consulta tabs: " + summary.privateTabsFromQuery);
-  parts.push("ventanas: " + summary.privateTabsFromWindows);
 
   if (!includePrivate) {
     return parts.join(" · ") + ". Marca la casilla para incluirlas.";
   }
 
-  if (summary.privateTabsFromQuery !== summary.privateTabsFromWindows) {
-    return parts.join(" · ") + ". Se combinaron ambas consultas para recuperar el máximo disponible.";
-  }
-
   return parts.join(" · ") + ".";
 }
+
 async function refreshSummary() {
   try {
     const includePrivate = $("include-private").checked;
