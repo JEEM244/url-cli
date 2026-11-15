@@ -12,6 +12,43 @@ function Initialize-TabVaultUIAutomation {
     }
 }
 
+function Get-EdgeTopLevelWindows {
+    $edgeProcessIds = @(
+        Get-Process -Name msedge -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty Id
+    )
+
+    if ($edgeProcessIds.Count -eq 0) {
+        return @()
+    }
+
+    $root = [System.Windows.Automation.AutomationElement]::RootElement
+    $windowCondition = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+        [System.Windows.Automation.ControlType]::Window
+    )
+
+    $topLevel = $root.FindAll(
+        [System.Windows.Automation.TreeScope]::Children,
+        $windowCondition
+    )
+
+    $matches = @(
+        foreach ($element in $topLevel) {
+            try {
+                if ($edgeProcessIds -contains $element.Current.ProcessId) {
+                    $element
+                }
+            }
+            catch {
+                continue
+            }
+        }
+    )
+
+    return $matches
+}
+
 function Get-EdgeAddressBarValue {
     param(
         [Parameter(Mandatory)]
@@ -120,7 +157,7 @@ function Get-EdgeWindowSnapshot {
 
             if ($isPrivate -and -not $IncludePrivate) {
                 $snapshots.Add([pscustomobject]@{
-                    processId = $process.Id
+                    processId = $processId
                     title = $null
                     url = $null
                     isPrivate = $true
@@ -193,7 +230,7 @@ function Test-TabVaultEnvironment {
     }
 
     $allEdge = @(Get-Process -Name msedge -ErrorAction SilentlyContinue)
-    $edgeWindows = @($allEdge | Where-Object { $_.MainWindowHandle -ne 0 })
+    $edgeWindows = @(Get-EdgeTopLevelWindows)
 
     if ($allEdge.Count -eq 0) {
         $issues.Add('Microsoft Edge is not running.')
