@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="dark">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
   <title>TabVault · Mi cartelera</title>
+  <!-- Estilos de la cartelera: tarjetas, grupos y vista para móvil. -->
   <style>
     :root{color-scheme:dark;font-family:Inter,"Segoe UI",Arial,sans-serif;background:#101217;color:#edf0f5;font-synthesis:none}
     *{box-sizing:border-box}
@@ -67,7 +68,9 @@
       <div><h1>Mi cartelera</h1><p class="subtitle">Tus pestañas organizadas en una vista visual. Busca por título o dominio, filtra por grupo y abre cualquier enlace.</p></div>
       <div class="stats"><div class="stat"><b id="total-count">0</b><span>ENLACES</span></div><div class="stat"><b id="group-count">0</b><span>GRUPOS</span></div></div>
     </section>
+    <!-- Este aviso aparece si el respaldo contiene pestañas InPrivate. -->
     <div id="privacy-note" class="privacy" hidden>Esta cartelera contiene enlaces guardados desde una ventana InPrivate. El archivo HTML conserva esos enlaces: guárdalo en un lugar privado y no lo compartas sin revisarlo.</div>
+    <!-- Buscador y filtro para encontrar enlaces sin recorrer toda la página. -->
     <div class="toolbar">
       <div class="search-wrap"><span class="search-icon">⌕</span><input id="search" class="search" type="search" placeholder="Buscar por título o dominio..." autocomplete="off"></div>
       <select id="group-filter" class="group-filter" aria-label="Filtrar por grupo"><option value="">Todos los grupos</option></select>
@@ -77,7 +80,9 @@
     <div id="empty" class="empty">No hay enlaces que coincidan con la búsqueda.</div>
     <footer>Generado por TabVault. Esta página funciona sin dependencias externas y no envía tus enlaces a ningún servidor.</footer>
   </main>
+  <!-- TabVault inserta aquí los datos del respaldo al generar el archivo. -->
   <script id="board-data" type="application/json">__BOARD_DATA__</script>
+  <!-- Este script organiza los enlaces y dibuja las tarjetas en la página. -->
   <script>
     (function () {
       "use strict";
@@ -89,7 +94,7 @@
       const groups = new Map();
       const palette = { grey:"#858d9a", blue:"#6da8ed", red:"#ed7777", yellow:"#e3c36b", green:"#78bd91", pink:"#d88eb6", purple:"#ad91df", cyan:"#70c5d1", orange:"#f28b42" };
 
-      data.tabs.forEach(function (tab) {
+      // Se agrupan las pestañas para que cada grupo tenga su propia sección.\n      data.tabs.forEach(function (tab) {
         if (!groups.has(tab.groupKey)) groups.set(tab.groupKey, { title:tab.groupTitle, color:tab.groupColor, tabs:[] });
         groups.get(tab.groupKey).tabs.push(tab);
       });
@@ -106,14 +111,14 @@
         groupFilter.appendChild(option);
       });
 
-      function makeBadge(label, extraClass) {
+      // Crea las etiquetas pequeñas: fijada, activa o InPrivate.\n      function makeBadge(label, extraClass) {
         const badge = document.createElement("span");
         badge.className = "badge" + (extraClass ? " " + extraClass : "");
         badge.textContent = label;
         return badge;
       }
 
-      function render() {
+      // Vuelve a dibujar la cartelera cuando cambia la búsqueda o el grupo.\n      function render() {
         const query = search.value.trim().toLocaleLowerCase();
         const selectedGroup = groupFilter.value;
         board.replaceChildren();
@@ -188,7 +193,7 @@
         empty.style.display = visibleCount ? "none" : "block";
       }
 
-      search.addEventListener("input", render);
+      // Los filtros no necesitan recargar el archivo.\n      search.addEventListener("input", render);
       groupFilter.addEventListener("change", render);
       render();
     })();
