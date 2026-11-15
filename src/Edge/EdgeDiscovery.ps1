@@ -223,7 +223,10 @@ function Test-TabVaultEnvironment {
     }
 
     $allEdge = @(Get-Process -Name msedge -ErrorAction SilentlyContinue)
-    $edgeWindows = @(Get-EdgeTopLevelWindows)
+    $edgeWindows = @()
+    if ($uiAutomationAvailable) {
+        $edgeWindows = @(Get-EdgeTopLevelWindows)
+    }
 
     if ($allEdge.Count -eq 0) {
         $issues.Add('Microsoft Edge is not running.')
