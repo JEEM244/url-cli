@@ -1,6 +1,7 @@
 using System.Text.Json;
 using TabVault.Cli.Capture;
 using TabVault.Cli.Models;
+using TabVault.Cli.Storage;
 
 namespace TabVault.Cli.Diagnostics;
 
@@ -39,6 +40,7 @@ public static class SelfTestRunner
 
         Check("Allows example.com", !SensitiveEntryFilter.IsSensitive("Example Domain", "https://example.com/"));
         Check("Allows Adult Education (false-positive regression)", !SensitiveEntryFilter.IsSensitive("Adult Education - Course Guide", "https://example.edu/course"));
+        Check("Allows a standalone use of the word adult", !SensitiveEntryFilter.IsSensitive("Adult learning resources", "https://example.edu/adult-learning"));
         Check("Allows Sex Education (false-positive regression)", !SensitiveEntryFilter.IsSensitive("Sex Education - Course Guide", "https://example.edu/health"));
         Check("Allows ordinary titles containing 'sex' as part of another word", !SensitiveEntryFilter.IsSensitive("Essex travel guide", "https://example.com/travel"));
         Check("Filters an explicit NSFW marker", SensitiveEntryFilter.IsSensitive("Example - NSFW", "https://example.com/"));
@@ -74,6 +76,30 @@ public static class SelfTestRunner
         Check("Does not serialize filtered regular title", !json.Contains("DO_NOT_STORE_REGULAR_TITLE", StringComparison.Ordinal));
         Check("Does not serialize filtered regular URL", !json.Contains("DO_NOT_STORE_REGULAR_URL", StringComparison.Ordinal));
         Check("Keeps the InPrivate flag on captured records", backup.Tabs.Single(tab => tab.IsPrivate).IsPrivate);
+
+        var temporaryDirectory = Path.Combine(Path.GetTempPath(), $"tabvault-test-{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(temporaryDirectory);
+            var targetPath = Path.Combine(temporaryDirectory, "backup.json");
+            var savedPath = BackupStore.Save(backup, targetPath);
+            var restored = JsonSerializer.Deserialize<BackupDocument>(
+                File.ReadAllText(savedPath),
+                BackupDocument.CreateJsonOptions());
+
+            Check("Writes a JSON backup to disk", File.Exists(savedPath));
+            Check("Reads the JSON backup back", restored is not null && restored.Summary.Captured == 2);
+            Check("Keeps filtered records out of the saved JSON",
+                restored is not null && restored.Tabs.Count == 2 &&
+                !File.ReadAllText(savedPath).Contains("DO_NOT_STORE", StringComparison.Ordinal));
+        }
+        finally
+        {
+            if (Directory.Exists(temporaryDirectory))
+            {
+                Directory.Delete(temporaryDirectory, recursive: true);
+            }
+        }
 
         Console.ResetColor();
         Console.WriteLine();
