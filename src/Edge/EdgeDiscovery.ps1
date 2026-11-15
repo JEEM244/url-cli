@@ -139,19 +139,12 @@ function Get-EdgeWindowSnapshot {
 
     Initialize-TabVaultUIAutomation
     $snapshots = [System.Collections.Generic.List[object]]::new()
+    $edgeWindows = @(Get-EdgeTopLevelWindows)
 
-    $edgeProcesses = @(Get-Process -Name msedge -ErrorAction SilentlyContinue |
-        Where-Object { $_.MainWindowHandle -ne 0 })
-
-    foreach ($process in $edgeProcesses) {
+    foreach ($window in $edgeWindows) {
+        $processId = $null
         try {
-            $window = [System.Windows.Automation.AutomationElement]::FromHandle(
-                $process.MainWindowHandle
-            )
-            if (-not $window) {
-                continue
-            }
-
+            $processId = $window.Current.ProcessId
             $windowTitle = [string]$window.Current.Name
             $isPrivate = $windowTitle -match '\[InPrivate\]|InPrivate'
 
@@ -172,7 +165,7 @@ function Get-EdgeWindowSnapshot {
 
             if ($isFiltered) {
                 $snapshots.Add([pscustomobject]@{
-                    processId = $process.Id
+                    processId = $processId
                     title = $null
                     url = $null
                     isPrivate = $isPrivate
@@ -193,7 +186,7 @@ function Get-EdgeWindowSnapshot {
             }
 
             $snapshots.Add([pscustomobject]@{
-                processId = $process.Id
+                processId = $processId
                 title = $windowTitle
                 url = if ($validUrl) { $url } else { $null }
                 isPrivate = $isPrivate
@@ -203,7 +196,7 @@ function Get-EdgeWindowSnapshot {
         }
         catch {
             $snapshots.Add([pscustomobject]@{
-                processId = $process.Id
+                processId = $processId
                 title = $null
                 url = $null
                 isPrivate = $false
