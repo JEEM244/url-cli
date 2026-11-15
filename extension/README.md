@@ -22,9 +22,10 @@ Extensión Manifest V3 para Microsoft Edge. Permite capturar pestañas en JSON, 
 ## Cartelera HTML
 
 - Archivo independiente, adaptable a escritorio y móvil.
-- Buscador por título y dominio, filtro por grupo y tarjetas para abrir enlaces.
+- Vista tipo cartelera con tarjetas grandes, portada de la primera imagen disponible de cada página, buscador por título y dominio, filtro por grupo y acceso directo.
 - Conserva información de grupo, pestaña fijada, pestaña activa y marca InPrivate.
-- No utiliza librerías, scripts externos, imágenes remotas ni envía datos a servidores.
+- No utiliza librerías ni scripts externos y no envía datos a servidores. Las portadas se cargan desde el sitio original, por lo que necesitan conexión a Internet y pueden no mostrarse si el sitio bloquea la imagen.
+- Cada tarjeta tiene una opción para quitar el enlace. Después de hacer cambios, pulsa «Guardar cartelera actualizada» para descargar una nueva versión sin los enlaces quitados.
 - Las URL se guardan dentro del propio HTML. Un tablero creado con enlaces InPrivate debe tratarse como información privada.
 
 ## Privacidad y límites
@@ -40,4 +41,5 @@ Extensión Manifest V3 para Microsoft Edge. Permite capturar pestañas en JSON, 
 
 - Chromium Extensions Manifest V3
 - JavaScript sin dependencias ni proceso de compilación
-- Chrome Tabs API y Tab Groups API
+- Chrome Tabs API, Tab Groups API y Scripting API
+- Permiso de acceso a páginas HTTP/HTTPS para consultar la primera imagen disponible
